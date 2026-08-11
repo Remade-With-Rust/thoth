@@ -1,13 +1,15 @@
-# Plan: `symbols` — a shared glyph crate for all House Rust apps
+# Plan: `thoth` — shared glyph / symbols crate for House Rust apps
 
-- **Status:** proposed, not started
+- **Status:** Phase 2 substantially complete; mata-master on-touch migration ongoing; Phase 3 next
 - **Created:** 2026-08-09
+- **Updated:** 2026-08-10
 - **Owner:** unassigned
-- **Northern star:** [`ratatui/ratatui`](https://github.com/ratatui/ratatui) — see below
+- **Northern star:** [`ratatui/ratatui`](https://github.com/ratatui/ratatui) `symbols` module
+- **README format:** [`rusty_dds`](https://github.com/Remade-With-Rust/rusty_dds)
 
 ---
 
-## Problem
+## 1. Problem
 
 Unicode glyphs (`→ ✓ ✗ ⏱ ↔ ↪ ▲ ≥ ─`) are written as raw literals scattered
 across every Rust app we own. Two consequences:
@@ -41,155 +43,158 @@ happen.
 glyph as mata's, and nothing pins *presentation* (see below). The same source
 renders differently across platforms.
 
-## Northern star
+## 2. Goals / non-goals
 
-**[`ratatui/ratatui`](https://github.com/ratatui/ratatui)** — specifically its
-`src/symbols.rs` module.
+### Goals
 
-It is the closest existing thing to what we want and the bar we should clear.
-Capabilities to mirror:
+- Semantic named constants over literal glyphs (`status::OK`, not a raw check).
+- Constants expressed as ASCII `\u{…}` escapes only — the crate source cannot mojibake.
+- Explicit VS15 (`U+FE0E`) on presentation-ambiguous glyphs for WebView uniformity.
+- Group by role: `status`, `nav`, `structure`, `math`, `list`.
+- Optional `html` feature for accessible labelled spans.
+- Self-test (ASCII gate + scalar values) and a consumer CI grep script.
+- rusty_dds-style README and phased plan tracking.
 
-- **Semantic naming over literal glyphs.** Call sites reference a named
-  constant describing intent, not the character.
-- **Grouped, swappable sets.** Related glyphs are bundled into named variants
-  (normal / rounded / double / thick) so a whole visual family is switched in
-  one place rather than per-call-site.
-- **Flat, dependency-free constants.** No runtime, no allocation, no
-  initialization. Just `const` data that inlines.
-- **Exhaustive coverage of one domain, and nothing else.** It does box drawing
-  and markers thoroughly; it does not drift into text layout or i18n.
+### Non-goals
 
-Secondary reference: **[`console-rs/console`](https://github.com/console-rs/console)**
-for its `Emoji` type, which pairs a glyph with an ASCII fallback and picks
-based on what the target can render. That graceful-degradation pattern is the
-model for our presentation handling.
+- i18n / localization
+- string formatting, pluralization
+- font loading or bundling
+- runtime, allocation, or non-trivial dependencies
+- Bulk-migrating all ~1,100 existing files in v0.1 (prevention first)
 
-What we should deliberately *not* copy from either: both are terminal-first.
-Our primary consumers are Dioxus/WebView GUIs rendering HTML, so our
-presentation and accessibility concerns differ (see Design).
+## 3. Architecture
 
-## Design
+```text
+┌─────────────────────────────────────────────────────────┐
+│  thoth                                                  │
+│                                                         │
+│  symbols::status     — ok / fail / warn / timer / … ✅  │
+│  symbols::nav        — arrows / hooks / collapse     ✅  │
+│  symbols::structure  — rules / tree lines            ✅  │
+│  symbols::math       — gte / lte / approx / times    ✅  │
+│  symbols::list       — bullet / middot               ✅  │
+│  symbols::html       — labelled <span>   [feature]   ✅  │
+└─────────────────────────────────────────────────────────┘
+```
+
+Northern-star capabilities to mirror from ratatui (without copying terminal-first
+or literal-glyph source style):
+
+- Semantic naming over literal glyphs
+- Grouped related sets
+- Flat, dependency-free `const` data
+- Exhaustive coverage of one domain only
+
+Secondary reference: [`console-rs/console`](https://github.com/console-rs/console)
+`Emoji` graceful-degradation pattern → our VS15 presentation pinning.
+
+## 4. Capability backlog (phased)
+
+### Phase 0 — Scaffold (this crate)
+
+- [x] Package `thoth` with rusty_dds-format README
+- [x] `symbols::{status,nav,structure,math,list}` constants as `\u{…}` only
+- [x] VS15 on presentation-ambiguous glyphs (stopwatch, alarm, warn, check, triangles)
+- [x] Feature-gated `symbols::html::labelled`
+- [x] ASCII self-test + scalar-value tests
+- [x] Consumer CI helper: `scripts/check-ascii-rs.sh` (+ PowerShell twin)
+- [x] Faucet glyph survey informs v0.1 constant list (mojibake-9 + high-frequency extras)
+- [x] `cargo test` / `cargo test --features html` green on clean checkout
+- [x] Tag `v0.1.0` when ready to pin consumers
+
+**Exit:** `cargo test` passes; crate source has zero bytes `> 0x7F`; README install
+path documented. **Met 2026-08-10.**
+
+### Phase 1 — First consumer (faucet)
+
+- [x] Path dep in faucet workspace (`thoth = { path = "../thoth" }`)
+- [x] Migrate faucet-gui UI call sites to `thoth::symbols::*` (distribution, settings, enrich, acquisition, run_events)
+- [x] ASCII-scrub faucet-gui `src/` (including former comment glyphs) so the consumer gate can enforce
+- [x] Consumer ASCII CI scripts under `faucet/scripts/check-ascii-rs.{sh,ps1}` (scoped to `crates/faucet-gui/src` for now)
+- [x] `cargo check -p faucet-gui` green
+
+**Exit:** faucet builds; mojibake-9 + high-frequency UI glyphs in faucet-gui use thoth;
+CI grep is wired for the GUI crate. **Met 2026-08-10.**
+
+**Platform note:** thoth itself is verified `no_std` + `wasm32-unknown-unknown` (with and without `html`). Faucet desktop remains the first consumer; web/wasm apps can depend on the same crate without change.
+
+### Phase 2 — Rollout to remaining apps
+
+- [x] Dial — `thoth` workspace dep; dial-poison migrated; ASCII gate on `crates/`
+- [x] comet — host/cli/pairtest migrated; comment scrub; ASCII gate on `crates/`
+- [x] mata-maestro — web UI + api tests migrated; ASCII gate on `src/` + `api/`
+- [x] mata-master — workspace `thoth` dep + scripts + Coding Requirements bullet (adopt for new code / migrate on touch; 176 code-glyph files deferred from bulk rewrite)
+- [ ] Optional: bulk-migrate mata-master UI packages package-by-package with CI grep already green per package
+
+**Exit:** Dial, comet, and mata-maestro depend on thoth with UI/log glyphs migrated;
+mata-master can consume thoth for all new glyphs. **Met 2026-08-10** (mata-master bulk
+migration remains on-touch).
+
+### Phase 3 — Hardening (optional)
+
+- [ ] Decide CSS story: generate custom properties from the same constants, or accept CSS as out of scope
+- [ ] Survey mata-master for glyph families beyond faucet's set; expand constants without breaking semver where possible
+- [ ] Publish path: keep git tags, or move to Remade-With-Rust org / crates.io later
+
+## 5. Design decisions (locked for v0.1)
 
 ### Constants are ASCII escapes, never literal glyphs
 
 ```rust
 pub const ARROW_RIGHT: &str = "\u{2192}";   // →
-pub const CHECK:       &str = "\u{2713}";   // ✓
-pub const GTE:         &str = "\u{2265}";   // ≥
+pub const CHECK:       &str = "\u{2713}\u{FE0E}";  // ✓ + VS15
 ```
-
-This is the load-bearing decision. A crate written entirely in ASCII escapes
-**cannot** mojibake, because there are no non-ASCII bytes for an encoding
-round-trip to corrupt. The glyph exists once, in a form that is immune, instead
-of 1,100 times in a form that is not.
 
 ### Pin presentation explicitly
 
-Several glyphs we use render as colour emoji or as text depending on platform
-and font — `⏱` (U+23F1) most notably, plus `▲` and `✓` in some contexts.
-Dioxus desktop means WebView2 on Windows and WKWebView on macOS: identical
-source, different glyph.
-
-Constants that are presentation-ambiguous carry an explicit variation selector:
-
 ```rust
-pub const STOPWATCH: &str = "\u{23F1}\u{FE0E}";  // ⏱ + VS15 → force text
+pub const STOPWATCH: &str = "\u{23F1}\u{FE0E}";  // force text presentation
 ```
-
-This is uniformity that is not achievable by convention across 1,100 files.
 
 ### Semantic grouping
 
-Group by role, not by appearance, so intent survives a visual change:
+| Module | Role |
+|---|---|
+| `status` | ok, fail, warn, pending/timer, play, stop, live |
+| `nav` | arrow directions, hooks, collapse |
+| `structure` | box drawing, rules, tree |
+| `math` | gte, lte, approx, times |
+| `list` | bullet, middot |
 
-- `status::` — ok, fail, pending, warn
-- `nav::` — arrow directions, breadcrumb separators
-- `structure::` — box drawing, rules, separators
-- `math::` — gte, lte, approx, delta
-
-`status::OK` and `list::BULLET` may both be `✓` today; grouping means changing
-one doesn't silently change the other.
-
-### Accessibility helper (feature-gated)
-
-A bare glyph in HTML has no accessible name — a screen reader announces
-nothing useful for `✓`. Behind a `html` feature, emit the labelled form:
+### Accessibility helper (feature `html`)
 
 ```rust
-symbols::html::labelled(status::OK, "verified")
-// -> <span role="img" aria-label="verified">✓</span>
+thoth::symbols::html::labelled(status::OK, "verified")
+// -> <span role="img" aria-label="verified">…</span>
 ```
 
-Impossible to enforce while glyphs are scattered literals.
-
-## Enforcement
-
-The crate alone is a convention people drift from. Two guards:
-
-1. **Self-test in the crate.** A `#[test]` reads the crate's own source and
-   asserts no byte exceeds `0x7F`, plus a test asserting each constant equals
-   the scalar value intended. The crate cannot regress into literals.
-
-2. **CI check in every consumer.** A grep that fails the build on any
-   non-ASCII byte in `.rs` files. This does double duty: it catches corruption
-   *and* it forces new symbols through the crate, because a raw glyph will not
-   pass review.
-
-Without (2) this decays within a year.
-
-## Distribution
-
-These are separate repos, not one workspace, so a path dependency will not
-reach across them.
-
-**Decision: git dependency.**
+### Distribution
 
 ```toml
-symbols = { git = "ssh://git@github.com/<org>/symbols", tag = "v0.1.0" }
+thoth = { git = "https://github.com/Ttimmahlax/thoth.git", tag = "v0.1.0" }
+# optional a11y helper:
+# thoth = { git = "https://github.com/Ttimmahlax/thoth.git", tag = "v0.1.0", features = ["html"] }
 ```
 
-Simplest mechanism that works today, and version-pinned per app so upgrades
-are deliberate. A private cargo registry is ergonomically nicer but is real
-setup; vendored copies defeat the purpose entirely.
+## 6. Open questions
 
-## Scope boundaries
+| Question | v0.1 decision |
+|---|---|
+| CSS `content:` glyphs | **Accepted out of scope** for Phase 0–1; revisit in Phase 3 |
+| Repo host / package name | **This repo** (`Ttimmahlax/thoth`), package `thoth`, API under `thoth::symbols` |
+| mata-master glyph survey | Deferred to Phase 3; faucet survey is enough for v0.1 |
 
-This is **not** a text library. Explicitly out of scope:
+## 7. Migration doctrine
 
-- i18n / localization
-- string formatting, pluralization
-- font loading or bundling
-- anything with a runtime or a non-trivial dependency
+**This is prevention, not a cure.** Existing literals stay until touched.
 
-Target size: ~100 lines of constants, a semantic grouping, two tests.
-
-## Migration
-
-Honest assessment: **this is prevention, not a cure.**
-
-The ~1,100 existing files keep their literals and stay corruptible until
-migrated. A wholesale codemod across five repos is a larger job than it
-sounds and carries its own corruption risk. Recommended path:
-
-1. Land the crate.
+1. Land the crate (Phase 0).
 2. Adopt for all *new* code.
 3. Fix files as they are touched for other reasons.
-4. Only consider a bulk codemod per-repo, never all at once, and only with the
-   CI check already in place to verify the result.
+4. Bulk codemod per-repo only with CI grep already in place.
 
-## Open questions
+## 8. First step (done when Phase 0 exit is green)
 
-- **CSS cannot consume a Rust crate.** Glyphs in `styles.css`
-  (`content: "→"`) stay exposed unless a build step generates CSS custom
-  properties from the same source. In scope, or accepted as-is?
-- **Repo host and org path** for the git dependency — needs deciding before
-  the first consumer wires up.
-- **Does mata-master's 955-file footprint** contain glyph families beyond
-  faucet's 9? A survey should precede the constant list so v0.1 isn't
-  immediately insufficient.
-
-## First step
-
-Scaffold the crate with the constants, the ASCII self-test, and the CI grep;
-wire `faucet` as the first consumer so it can be judged on one repo before it
-touches mata-master.
+Scaffold the crate with the constants, the ASCII self-test, the CI grep, and a
+rusty_dds-format README; wire `faucet` next (Phase 1).
