@@ -11,7 +11,7 @@
 > pinning + optional CSS / ARIA helpers** -- pure Rust, zero dependencies.
 > Application `.rs` files stay ASCII; glyphs never scatter as raw literals
 > that Windows-1252 round-trips can mojibake. Thoth is the Egyptian god of
-> knowledge and hieroglyphs.
+> wisdom, knowledge, writing, and hieroglyphs.
 >
 > Product nicknames: **rusty_tokens** (`thoth::tokens`), **rusty_a11y**
 > (`thoth::a11y`).
@@ -143,7 +143,7 @@ powershell -File scripts/check-ascii-rs.ps1 src crates
 | `html::labelled` compat re-export | done feature `html` |
 | ASCII self-test | done |
 | Consumer CI scripts | done |
-| First consumer for tokens/a11y | Phase 1 |
+| First consumer for tokens/a11y | done Phase 1 |
 | crates.io | later |
 
 ## Architecture

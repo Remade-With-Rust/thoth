@@ -1,6 +1,6 @@
 # Plan: `thoth::a11y` (rusty_a11y) -- accessibility helpers for UI chrome
 
-- **Status:** Phase 0 scaffold in progress (v0.2)
+- **Status:** Phase 0 done (v0.2.0 tagged); Phase 1 consumer wired (maestro-console + faucet-gui)
 - **Repo:** https://github.com/Remade-With-Rust/thoth
 - **Created:** 2026-08-11
 - **Updated:** 2026-08-11
@@ -59,11 +59,11 @@ thoth::symbols::html::labelled  -- re-export of a11y::label::img  [feature html]
 - [x] `html = ["a11y"]` + re-export compat
 - [x] Escape + announcement tests
 - [x] Plan doc + README rows
-- [ ] Tag **v0.2.0**
+- [x] Tag **v0.2.0**
 
 ### Phase 1 -- First consumer
 
-- [ ] 2-3 live/status call sites in one real UI
+- [x] 2-3 live/status call sites in one real UI
 
 ### Phase 2 -- Harden
 

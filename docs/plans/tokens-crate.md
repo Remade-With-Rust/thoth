@@ -1,6 +1,6 @@
 # Plan: `thoth::tokens` (rusty_tokens) -- design tokens for any Rust UI
 
-- **Status:** Phase 0 scaffold in progress (v0.2)
+- **Status:** Phase 0 done (v0.2.0 tagged); Phase 1 consumer wired (maestro-console + faucet-gui)
 - **Repo:** https://github.com/Remade-With-Rust/thoth
 - **Created:** 2026-08-11
 - **Updated:** 2026-08-11
@@ -60,11 +60,11 @@ thoth::tokens
 - [x] Feature `css` + `root_sheet()`
 - [x] ASCII + value tests
 - [x] Plan doc + README rows
-- [ ] Tag **v0.2.0** with symbols + a11y
+- [x] Tag **v0.2.0** with symbols + a11y
 
 ### Phase 1 -- First consumer
 
-- [ ] Wire one UI to inject `root_sheet()` (faucet-gui or mata-master console)
+- [x] Wire one UI to inject `root_sheet()` (faucet-gui + maestro-console)
 
 ### Phase 2 -- Harden
 
