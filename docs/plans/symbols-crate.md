@@ -1,6 +1,6 @@
 # Plan: `thoth` — shared glyph / symbols crate for House Rust apps
 
-- **Status:** Phase 3 survey/CSS/tag done; `packages/ui` migrated (ASCII-clean)
+- **Status:** Phase 3 done; mata-master portfolio migrated (ASCII-clean)
 - **Repo:** https://github.com/Remade-With-Rust/thoth (`v0.1.0`)
 - **Created:** 2026-08-09
 - **Updated:** 2026-08-10
@@ -67,17 +67,18 @@ renders differently across platforms.
 ## 3. Architecture
 
 ```text
-┌─────────────────────────────────────────────────────────┐
-│  thoth                                                  │
-│                                                         │
-│  symbols::status     — ok / fail / warn / timer / … ✅  │
-│  symbols::nav        — arrows / hooks / collapse     ✅  │
-│  symbols::structure  — rules / tree lines            ✅  │
-│  symbols::math       — gte / lte / approx / times    ✅  │
-│  symbols::list       — bullet / middot               ✅  │
-│  symbols::html       — labelled <span>   [feature]   ✅  │
-└─────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────┐
+│  thoth                                                       │
+│                                                              │
+│  symbols::*          -- glyphs (v0.1.0)                   ✅ │
+│  symbols::html       -- labelled span; re-exports a11y    ✅ │
+│                                                              │
+│  tokens::*           -- design tokens (rusty_tokens)      ⏳ │
+│  a11y::*             -- chrome a11y helpers (rusty_a11y)  ⏳ │
+└──────────────────────────────────────────────────────────────┘
 ```
+
+Sibling plans: [tokens-crate.md](tokens-crate.md), [a11y-crate.md](a11y-crate.md).
 
 Northern-star capabilities to mirror from ratatui (without copying terminal-first
 or literal-glyph source style):
@@ -125,12 +126,12 @@ CI grep is wired for the GUI crate. **Met 2026-08-10.**
 - [x] Dial — `thoth` workspace dep; dial-poison migrated; ASCII gate on `crates/`
 - [x] comet — host/cli/pairtest migrated; comment scrub; ASCII gate on `crates/`
 - [x] mata-maestro — web UI + api tests migrated; ASCII gate on `src/` + `api/`
-- [x] mata-master — workspace `thoth` dep + scripts + Coding Requirements bullet (adopt for new code / migrate on touch; 176 code-glyph files deferred from bulk rewrite)
-- [ ] Optional: bulk-migrate mata-master UI packages package-by-package with CI grep already green per package
+- [x] mata-master — workspace `thoth` dep + scripts + Coding Requirements bullet
+- [x] Bulk-migrate mata-master portfolio (`packages/ui` + disco*/maestro*/playground/daemons/…); ASCII gate green on migrated trees
 
 **Exit:** Dial, comet, and mata-maestro depend on thoth with UI/log glyphs migrated;
-mata-master can consume thoth for all new glyphs. **Met 2026-08-10** (mata-master bulk
-migration remains on-touch).
+mata-master can consume thoth for all new glyphs. **Met 2026-08-10**; mata-master portfolio
+bulk migration **Met 2026-08-10**.
 
 ### Phase 3 — Hardening
 
@@ -138,7 +139,7 @@ migration remains on-touch).
 - [x] **mata-master glyph survey:** expanded v0.1 (`PASS`/`REJECT`/`CROSS`/`HOURGLASS`, nav `DOUBLE_RIGHT`/`LONG_RIGHT`/`NE`/`RELOAD`, math `MINUS`/`PLUS_MINUS`/`DELTA`/`MICRO`/`SQRT`/`ELEMENT_OF`). Decorative emoji deferred.
 - [x] Tag **`v0.1.0`** at https://github.com/Remade-With-Rust/thoth — consumers pin `git = "…/thoth.git", tag = "v0.1.0"`
 - [x] Migrate `packages/ui` (largest code-glyph surface); ASCII gate green
-- [ ] Migrate `packages/desktop` / playground as follow-ons (on-touch / next PR)
+- [x] Migrate remaining mata-master code-glyph packages (playground, disco*, maestro*, home-computer-daemon, iamhuman-web, …); static contexts use `\u{…}` where `const`/`#[error]` cannot take live consts
 - [ ] Optional crates.io later
 
 ## 5. Design decisions (locked for v0.1)
@@ -176,9 +177,9 @@ thoth::symbols::html::labelled(status::OK, "verified")
 ### Distribution
 
 ```toml
-thoth = { git = "https://github.com/Ttimmahlax/thoth.git", tag = "v0.1.0" }
+thoth = { git = "https://github.com/Remade-With-Rust/thoth.git", tag = "v0.1.0" }
 # optional a11y helper:
-# thoth = { git = "https://github.com/Ttimmahlax/thoth.git", tag = "v0.1.0", features = ["html"] }
+# thoth = { git = "https://github.com/Remade-With-Rust/thoth.git", tag = "v0.1.0", features = ["html"] }
 ```
 
 ## 6. Open questions

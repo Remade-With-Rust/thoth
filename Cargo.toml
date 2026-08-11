@@ -1,12 +1,12 @@
 [package]
 name = "thoth"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Remade With Rust / Mata Network"]
-description = "Shared Unicode glyph constants for House Rust apps — ASCII-safe, semantically grouped (Remade With Rust)"
+description = "Unicode glyphs, design tokens, and chrome a11y helpers — ASCII-safe, semantically grouped (Remade With Rust)"
 repository = "https://github.com/Remade-With-Rust/thoth"
 documentation = "https://docs.rs/thoth"
 license = "MIT"
-keywords = ["unicode", "glyphs", "symbols", "dioxus", "ui"]
+keywords = ["unicode", "glyphs", "symbols", "tokens", "a11y"]
 categories = ["gui", "encoding", "no-std"]
 readme = "README.md"
 edition = "2021"
@@ -19,8 +19,12 @@ rustdoc-args = ["--cfg", "docsrs"]
 
 [features]
 default = []
-# Accessible HTML labelled spans for Dioxus / WebView UIs.
-html = []
+# Accessible HTML helpers (rusty_a11y). Preferred path for new code.
+a11y = []
+# v0.1 compat: enables a11y and re-exports symbols::html::labelled.
+html = ["a11y"]
+# CSS :root sheet emitter for design tokens (rusty_tokens).
+css = []
 
 [dependencies]
 

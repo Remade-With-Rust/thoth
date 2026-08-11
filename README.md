@@ -6,35 +6,39 @@
 ![Platforms: Windows · macOS · Linux · Web · WASM](https://img.shields.io/badge/platforms-Windows%20%C2%B7%20macOS%20%C2%B7%20Linux%20%C2%B7%20Web%20%C2%B7%20WASM-informational)
 ![MSRV: 1.73](https://img.shields.io/badge/MSRV-1.73-informational)
 
-> **thoth** is a shared Unicode glyph toolkit for House Rust apps —
-> **semantically named constants + presentation pinning + optional HTML
-> a11y helpers** — pure Rust, zero dependencies, so Dioxus / WebView UIs
-> never scatter raw glyph literals that Windows-1252 round-trips can
-> mojibake. Thoth is the Egyptian god of knowledge and hieroglyphs.
+> **thoth** is an open-source Unicode glyph, design-token, and chrome a11y
+> toolkit for any Rust UI -- **semantically named constants + presentation
+> pinning + optional CSS / ARIA helpers** -- pure Rust, zero dependencies.
+> Application `.rs` files stay ASCII; glyphs never scatter as raw literals
+> that Windows-1252 round-trips can mojibake. Thoth is the Egyptian god of
+> knowledge and hieroglyphs.
+>
+> Product nicknames: **rusty_tokens** (`thoth::tokens`), **rusty_a11y**
+> (`thoth::a11y`).
 
-> **Status — pre-1.0, v0.1.0 tagged.** Consumers pin
-> `git = "https://github.com/Remade-With-Rust/thoth.git", tag = "v0.1.0"`.
-> Faucet, Dial, comet, mata-maestro migrated; mata-master `packages/ui`
-> migrated + ASCII-clean. CSS glyphs out of scope. Core is `no_std` /
-> wasm-checked. Plan: [docs/plans/symbols-crate.md](docs/plans/symbols-crate.md).
+> **Status -- v0.2.0.** Consumers pin
+> `git = "https://github.com/Remade-With-Rust/thoth.git", tag = "v0.2.0"`.
+> Core is `no_std` / wasm-checked. Plans:
+> [symbols](docs/plans/symbols-crate.md) |
+> [tokens](docs/plans/tokens-crate.md) |
+> [a11y](docs/plans/a11y-crate.md).
 
 ---
 
 ## The headline
 
-> **One immune source of truth.** Glyphs live once, as ASCII `\u{…}`
-> escapes. Application `.rs` files stay pure ASCII; CI rejects any
-> non-ASCII byte so corruption cannot land again and new symbols must
-> come through this crate.
+> **One immune source of truth.** Glyphs and tokens live once, as ASCII
+> source. CI rejects non-ASCII `.rs` bytes so corruption cannot land again.
 
 | Dimension | Scattered literals | **thoth (Rust)** | Goal |
 |---|:---:|:---:|:---:|
-| Mojibake-proof source | every file is a site | **ASCII escapes only** | structural |
-| Naming | raw codepoints | **semantic modules** | maintain |
-| Presentation (WebView2 / WKWebView) | platform-dependent | **VS15 pinned** | uniform |
-| Accessibility | bare glyph, no name | **`html` labelled spans** | opt-in |
-| Dependencies | — | **none** | maintain |
-| License + embedding | mixed | **MIT** | — |
+| Mojibake-proof source | every file is a site | **ASCII escapes / ASCII hex** | structural |
+| Naming | raw codepoints / hex | **semantic modules** | maintain |
+| Presentation (WebView) | platform-dependent | **VS15 pinned glyphs** | uniform |
+| Chrome theme contract | ad-hoc CSS | **`--thoth-*` tokens + optional sheet** | uniform |
+| Accessibility | bare glyph, no name | **`a11y` / `html` helpers** | opt-in |
+| Dependencies | -- | **none** | maintain |
+| License + embedding | mixed | **MIT** | -- |
 
 ---
 
@@ -43,19 +47,25 @@
 Not on crates.io yet. From a sibling checkout or git tag:
 
 ```toml
-thoth = { git = "https://github.com/Remade-With-Rust/thoth.git", tag = "v0.1.0" }
-# accessible HTML helper:
-# thoth = { git = "https://github.com/Remade-With-Rust/thoth.git", tag = "v0.1.0", features = ["html"] }
+thoth = { git = "https://github.com/Remade-With-Rust/thoth.git", tag = "v0.2.0" }
+# accessible HTML helpers (preferred):
+# thoth = { git = "...", tag = "v0.2.0", features = ["a11y"] }
+# v0.1 compat alias (enables a11y + symbols::html::labelled):
+# thoth = { git = "...", tag = "v0.2.0", features = ["html"] }
+# CSS :root emitter for design tokens:
+# thoth = { git = "...", tag = "v0.2.0", features = ["css"] }
 # local path while developing:
 # thoth = { path = "../thoth" }
 ```
 
 | Feature | Default | Provides |
 |---------|---------|----------|
-| *(none)* | — | `symbols::{status,nav,structure,math,list}` |
-| `html` | no | `symbols::html::labelled` |
+| *(none)* | -- | `symbols::*`, `tokens::{color,space,type_scale,radius}` |
+| `a11y` | no | `a11y::{label,live,status}` |
+| `html` | no | enables `a11y`; `symbols::html::labelled` re-export |
+| `css` | no | `tokens::css::root_sheet` |
 
-Always on: pure-ASCII constants, `no_std`, zero deps.
+Always on: pure-ASCII source, `no_std` core, zero deps.
 
 MSRV: **1.73**.
 
@@ -63,35 +73,45 @@ MSRV: **1.73**.
 
 ```rust
 use thoth::symbols::{nav, status, math};
+use thoth::tokens::color;
 
 fn label_ok() -> String {
     format!("{} ready", status::OK)
 }
 
-fn arrow_flow() -> String {
-    format!("A {} B", nav::RIGHT)
-}
-
-fn warmup() -> String {
-    format!("n {} 1", math::GTE)
+fn theme_fg_var() -> &'static str {
+    color::FG // "--thoth-color-fg"
 }
 ```
 
 ```rust
-// feature = "html"
-use thoth::symbols::{html, status};
+// feature = "a11y"
+use thoth::a11y::{label, status as a11y_status};
+use thoth::symbols::status;
 
 fn accessible_ok() -> String {
-    html::labelled(status::OK, "verified")
-    // -> <span role="img" aria-label="verified">…</span>
+    label::img(status::OK, "verified")
+}
+
+fn saved_banner() -> String {
+    a11y_status::announce(a11y_status::Kind::Saved)
+}
+```
+
+```rust
+// feature = "css"
+use thoth::tokens::css;
+
+fn inject_theme() -> String {
+    css::root_sheet()
 }
 ```
 
 ```sh
 cargo test
-cargo test --features html
+cargo test --features a11y,css,html
 
-# Consumer CI — fail the build on non-ASCII .rs bytes
+# Consumer CI -- fail the build on non-ASCII .rs bytes
 bash scripts/check-ascii-rs.sh src crates
 # Windows:
 powershell -File scripts/check-ascii-rs.ps1 src crates
@@ -99,74 +119,79 @@ powershell -File scripts/check-ascii-rs.ps1 src crates
 
 ## Features
 
-- **Status** — ok / fail / warn / timer / alarm / live / play / stop.
-- **Nav** — arrows, hooks, branch, collapse (VS15 on triangles).
-- **Structure** — horizontal rule, tree tee / corner.
-- **Math** — gte / lte / approx / times.
-- **List** — bullet / middot.
-- **HTML** — labelled `role="img"` spans (`html` feature).
-- **Guards** — ASCII source self-test; consumer grep scripts.
+- **Status** -- ok / fail / warn / timer / alarm / live / play / stop.
+- **Nav** -- arrows, hooks, branch, collapse (VS15 on triangles).
+- **Structure** -- horizontal rule, tree tee / corner.
+- **Math** -- gte / lte / approx / times.
+- **List** -- bullet / middot.
+- **Tokens (rusty_tokens)** -- color / space / type_scale / radius names + defaults.
+- **CSS** -- `:root` sheet emitter (`css` feature).
+- **A11y (rusty_a11y)** -- labelled glyphs, live regions, status announcements.
+- **HTML** -- v0.1 compat re-export of `a11y::label::img`.
+- **Guards** -- ASCII source self-test; consumer grep scripts.
 
 ### Capability table
 
 | Capability | Status |
 |---|---|
-| `\u{…}` constants (mojibake-proof) | ✅ |
-| Semantic modules (`status` / `nav` / …) | ✅ |
-| VS15 presentation pinning | ✅ |
-| `html::labelled` | ✅ feature |
-| ASCII self-test | ✅ |
-| Consumer CI scripts | ✅ |
-| Faucet wired as first consumer | ✅ Phase 1 |
-| Dial / comet / mata-maestro consumers | ✅ Phase 2 |
-| mata-master workspace dep + on-touch rule | ✅ Phase 2 |
-| Bulk migration of mata-master existing glyphs | ⏳ on-touch / Phase 3 |
+| `\u{...}` glyph constants (mojibake-proof) | done |
+| Semantic symbol modules | done |
+| VS15 presentation pinning | done |
+| Design tokens (`tokens::*`) | done v0.2 |
+| CSS `:root` emitter | done feature `css` |
+| `a11y` label / live / status | done feature `a11y` |
+| `html::labelled` compat re-export | done feature `html` |
+| ASCII self-test | done |
+| Consumer CI scripts | done |
+| First consumer for tokens/a11y | Phase 1 |
+| crates.io | later |
 
 ## Architecture
 
 ```text
-┌─────────────────────────────────────────────────────────┐
-│  thoth                                                  │
-│                                                         │
-│  symbols::status     — ok / fail / warn / timer    ✅   │
-│  symbols::nav        — arrows / hooks / collapse   ✅   │
-│  symbols::structure  — rules / tree lines          ✅   │
-│  symbols::math       — gte / lte / approx / times  ✅   │
-│  symbols::list       — bullet / middot             ✅   │
-│  symbols::html       — labelled <span> [feature]   ✅   │
-└─────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────┐
+│  thoth                                                       │
+│                                                              │
+│  symbols::*          -- glyphs                            ✅ │
+│  symbols::html       -- labelled; re-exports a11y         ✅ │
+│  tokens::*           -- design tokens (rusty_tokens)      ✅ │
+│  tokens::css         -- :root sheet [feature css]         ✅ │
+│  a11y::*             -- chrome a11y (rusty_a11y) [a11y]   ✅ │
+└──────────────────────────────────────────────────────────────┘
 ```
 
-Plan: [docs/plans/symbols-crate.md](docs/plans/symbols-crate.md).
+Plans: [symbols](docs/plans/symbols-crate.md) |
+[tokens](docs/plans/tokens-crate.md) |
+[a11y](docs/plans/a11y-crate.md).
 
-Northern star: [ratatui symbols](https://github.com/ratatui/ratatui) (semantic
-naming, grouped sets, flat consts) — without terminal-first APIs or literal
-glyph source bytes.
+Northern star for glyphs: [ratatui symbols](https://github.com/ratatui/ratatui)
+(semantic naming, grouped sets, flat consts) -- without terminal-first APIs or
+literal glyph source bytes.
 
 ## Platform support
 
 | Platform | Status |
 |---|---|
-| Windows | ✅ |
-| macOS | ✅ |
-| Linux | ✅ |
-| Web (Dioxus / browsers) | ✅ |
-| WASM (`wasm32-unknown-unknown`) | ✅ (`no_std` core; `html` needs `alloc`) |
+| Windows | yes |
+| macOS | yes |
+| Linux | yes |
+| Web (Dioxus / browsers) | yes |
+| WASM (`wasm32-unknown-unknown`) | yes (`no_std` core; `a11y` / `html` / `css` need `alloc`) |
 
-No OS APIs, no `std` requirement on the default feature set. The same
-constants render under WebView2, WKWebView, and wasm UIs; VS15 pinning
-keeps presentation consistent across those hosts.
+No OS APIs on the default feature set. The same constants render under
+WebView2, WKWebView, and wasm UIs; VS15 pinning keeps glyph presentation
+consistent across those hosts.
 
 ## Remade With Rust
 
 **Remade With Rust** ([Mata Network](https://www.mata.network)) rebuilds essential
-tooling in Rust — memory safety, predictable performance, permissive license.
+tooling in Rust -- memory safety, predictable performance, permissive license.
 
-→ **[github.com/remade-with-rust](https://github.com/remade-with-rust)**
+-> **[github.com/remade-with-rust](https://github.com/remade-with-rust)**
 
 ## License
 
-MIT — [LICENSE-MIT](LICENSE-MIT).
+MIT -- [LICENSE-MIT](LICENSE-MIT).
 
 ## Trademark
 
