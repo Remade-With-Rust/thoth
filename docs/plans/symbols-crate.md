@@ -1,6 +1,6 @@
 # Plan: `thoth` — shared glyph / symbols crate for House Rust apps
 
-- **Status:** Phase 3 survey/CSS/tag done; mata-master `packages/ui` migration next
+- **Status:** Phase 3 survey/CSS/tag done; `packages/ui` migrated (ASCII-clean)
 - **Repo:** https://github.com/Remade-With-Rust/thoth (`v0.1.0`)
 - **Created:** 2026-08-09
 - **Updated:** 2026-08-10
@@ -137,7 +137,8 @@ migration remains on-touch).
 - [x] **CSS `content:` glyphs:** surveyed — no actionable exposure. **Out of scope.**
 - [x] **mata-master glyph survey:** expanded v0.1 (`PASS`/`REJECT`/`CROSS`/`HOURGLASS`, nav `DOUBLE_RIGHT`/`LONG_RIGHT`/`NE`/`RELOAD`, math `MINUS`/`PLUS_MINUS`/`DELTA`/`MICRO`/`SQRT`/`ELEMENT_OF`). Decorative emoji deferred.
 - [x] Tag **`v0.1.0`** at https://github.com/Remade-With-Rust/thoth — consumers pin `git = "…/thoth.git", tag = "v0.1.0"`
-- [ ] Migrate `packages/ui` (largest code-glyph surface), then desktop/playground
+- [x] Migrate `packages/ui` (largest code-glyph surface); ASCII gate green
+- [ ] Migrate `packages/desktop` / playground as follow-ons (on-touch / next PR)
 - [ ] Optional crates.io later
 
 ## 5. Design decisions (locked for v0.1)
