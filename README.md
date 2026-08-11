@@ -12,13 +12,11 @@
 > never scatter raw glyph literals that Windows-1252 round-trips can
 > mojibake. Thoth is the Egyptian god of knowledge and hieroglyphs.
 
-> **Status — pre-1.0, Phase 2 substantially complete.** Consumers:
-> faucet (Phase 1), Dial, comet, mata-maestro; mata-master has the
-> workspace dep + Coding Requirements rule (migrate on touch).
-> Core crate is `no_std` and checked on `wasm32-unknown-unknown`.
-> **Next:** tag `v0.1.0`, optional mata-master package-by-package
-> codemod (Phase 3). Plan:
-> [docs/plans/symbols-crate.md](docs/plans/symbols-crate.md).
+> **Status — pre-1.0, v0.1.0 tagged.** Consumers pin
+> `git = "https://github.com/Remade-With-Rust/thoth.git", tag = "v0.1.0"`.
+> Faucet, Dial, comet, mata-maestro migrated; mata-master `packages/ui`
+> migrated + ASCII-clean. CSS glyphs out of scope. Core is `no_std` /
+> wasm-checked. Plan: [docs/plans/symbols-crate.md](docs/plans/symbols-crate.md).
 
 ---
 
