@@ -1,6 +1,7 @@
 # Plan: `thoth` — shared glyph / symbols crate for House Rust apps
 
-- **Status:** Phase 2 substantially complete; mata-master on-touch migration ongoing; Phase 3 next
+- **Status:** Phase 3 survey/CSS/tag done; mata-master `packages/ui` migration next
+- **Repo:** https://github.com/Remade-With-Rust/thoth (`v0.1.0`)
 - **Created:** 2026-08-09
 - **Updated:** 2026-08-10
 - **Owner:** unassigned
@@ -131,11 +132,13 @@ CI grep is wired for the GUI crate. **Met 2026-08-10.**
 mata-master can consume thoth for all new glyphs. **Met 2026-08-10** (mata-master bulk
 migration remains on-touch).
 
-### Phase 3 — Hardening (optional)
+### Phase 3 — Hardening
 
-- [ ] Decide CSS story: generate custom properties from the same constants, or accept CSS as out of scope
-- [ ] Survey mata-master for glyph families beyond faucet's set; expand constants without breaking semver where possible
-- [ ] Publish path: keep git tags, or move to Remade-With-Rust org / crates.io later
+- [x] **CSS `content:` glyphs:** surveyed — no actionable exposure. **Out of scope.**
+- [x] **mata-master glyph survey:** expanded v0.1 (`PASS`/`REJECT`/`CROSS`/`HOURGLASS`, nav `DOUBLE_RIGHT`/`LONG_RIGHT`/`NE`/`RELOAD`, math `MINUS`/`PLUS_MINUS`/`DELTA`/`MICRO`/`SQRT`/`ELEMENT_OF`). Decorative emoji deferred.
+- [x] Tag **`v0.1.0`** at https://github.com/Remade-With-Rust/thoth — consumers pin `git = "…/thoth.git", tag = "v0.1.0"`
+- [ ] Migrate `packages/ui` (largest code-glyph surface), then desktop/playground
+- [ ] Optional crates.io later
 
 ## 5. Design decisions (locked for v0.1)
 
@@ -181,9 +184,9 @@ thoth = { git = "https://github.com/Ttimmahlax/thoth.git", tag = "v0.1.0" }
 
 | Question | v0.1 decision |
 |---|---|
-| CSS `content:` glyphs | **Accepted out of scope** for Phase 0–1; revisit in Phase 3 |
-| Repo host / package name | **This repo** (`Ttimmahlax/thoth`), package `thoth`, API under `thoth::symbols` |
-| mata-master glyph survey | Deferred to Phase 3; faucet survey is enough for v0.1 |
+| CSS `content:` glyphs | **Out of scope** (Phase 3 survey) |
+| Repo host / package name | **`Remade-With-Rust/thoth`**, package `thoth`, API under `thoth::symbols` |
+| mata-master glyph survey | Done for v0.1.0; emoji deferred |
 
 ## 7. Migration doctrine
 

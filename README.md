@@ -45,9 +45,9 @@
 Not on crates.io yet. From a sibling checkout or git tag:
 
 ```toml
-thoth = { git = "https://github.com/Ttimmahlax/thoth.git", tag = "v0.1.0" }
+thoth = { git = "https://github.com/Remade-With-Rust/thoth.git", tag = "v0.1.0" }
 # accessible HTML helper:
-# thoth = { git = "https://github.com/Ttimmahlax/thoth.git", tag = "v0.1.0", features = ["html"] }
+# thoth = { git = "https://github.com/Remade-With-Rust/thoth.git", tag = "v0.1.0", features = ["html"] }
 # local path while developing:
 # thoth = { path = "../thoth" }
 ```

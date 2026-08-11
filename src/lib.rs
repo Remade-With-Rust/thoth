@@ -18,7 +18,7 @@
 //! | [`symbols::list`] | bullets / separators |
 //! | [`symbols::html`] | labelled HTML spans (`html` feature) |
 //!
-//! Plan: [`docs/plans/symbols-crate.md`](https://github.com/Ttimmahlax/thoth/blob/main/docs/plans/symbols-crate.md).
+//! Plan: [`docs/plans/symbols-crate.md`](https://github.com/Remade-With-Rust/thoth/blob/main/docs/plans/symbols-crate.md).
 
 pub mod symbols;
 
