@@ -1,6 +1,6 @@
 [package]
 name = "thoth"
-version = "0.2.0"
+version = "0.3.0"
 authors = ["Remade With Rust / Mata Network"]
 description = "Unicode glyphs, design tokens, and chrome a11y helpers — ASCII-safe, semantically grouped (Remade With Rust)"
 repository = "https://github.com/Remade-With-Rust/thoth"
@@ -18,7 +18,14 @@ all-features = true
 rustdoc-args = ["--cfg", "docsrs"]
 
 [features]
-default = []
+# ON by default: apps that only take thoth get rusty_alloc. Libraries and
+# portfolios that already install an allocator (e.g. mata-alloc) must set
+# `default-features = false`.
+default = ["rusty-alloc"]
+# Pure-Rust global allocator (mimalloc-class). Opt out with default-features = false.
+rusty-alloc = ["dep:rusty_alloc-api"]
+# Guard pages + encrypted free lists (~4-7% instructions, measured upstream).
+secure = ["rusty-alloc", "rusty_alloc-api/secure"]
 # Accessible HTML helpers (rusty_a11y). Preferred path for new code.
 a11y = []
 # v0.1 compat: enables a11y and re-exports symbols::html::labelled.
@@ -27,5 +34,12 @@ html = ["a11y"]
 css = []
 
 [dependencies]
+# Optional so `default-features = false` removes it from the graph entirely.
+# Pin exactly: rusty_alloc is 0.x and earlier releases had UAFs on all targets.
+rusty_alloc-api = { version = "=0.4.0", optional = true }
 
 [dev-dependencies]
+
+[[example]]
+name = "platform_demo"
+required-features = ["a11y", "css"]

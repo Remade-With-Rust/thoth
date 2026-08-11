@@ -10,6 +10,26 @@
 //! All crate source stays pure ASCII so Windows-1252 round-trips cannot
 //! mojibake constants.
 //!
+//! # Memory allocation (`rusty_alloc`) -- on by default
+//!
+//! With the default `rusty-alloc` feature, thoth installs
+//! [`rusty_alloc`](https://github.com/Remade-With-Rust/rusty_alloc) as the
+//! process-wide allocator: pure Rust, mimalloc-class layout, double-free
+//! aborts instead of heap corruption, and `wasm32-unknown-unknown` without a
+//! C toolchain. Opt out when the app already owns the allocator:
+//!
+//! ```toml
+//! thoth = { version = "0.3", default-features = false }
+//! thoth = { version = "0.3", features = ["secure"] }  # + guard pages
+//! ```
+//!
+//! ## If you are writing a LIBRARY that depends on thoth
+//!
+//! Set `default-features = false`. A program may contain exactly **one**
+//! `#[global_allocator]`, and Cargo features are additive across the whole
+//! graph -- a library that pulled thoth with defaults on would impose this
+//! allocator on every downstream application.
+//!
 //! # Modules
 //!
 //! | Module | Role |
@@ -26,6 +46,24 @@
 //!
 //! Plans: symbols / [tokens](https://github.com/Remade-With-Rust/thoth/blob/main/docs/plans/tokens-crate.md) /
 //! [a11y](https://github.com/Remade-With-Rust/thoth/blob/main/docs/plans/a11y-crate.md).
+
+/// The pure-Rust global allocator, installed process-wide.
+///
+/// Present with the **default** `rusty-alloc` feature. See the crate-level
+/// docs for opt-out and library-consumer guidance.
+#[cfg(feature = "rusty-alloc")]
+#[global_allocator]
+static GLOBAL: rusty_alloc_api::RustyAlloc = rusty_alloc_api::RustyAlloc;
+
+/// Whether this build installed `rusty_alloc` as the global allocator.
+pub const fn rusty_alloc_enabled() -> bool {
+    cfg!(feature = "rusty-alloc")
+}
+
+/// Whether the hardened `secure` profile is compiled in.
+pub const fn secure_allocator_enabled() -> bool {
+    cfg!(feature = "secure")
+}
 
 pub mod symbols;
 pub mod tokens;

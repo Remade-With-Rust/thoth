@@ -8,16 +8,18 @@
 
 > **thoth** is an open-source Unicode glyph, design-token, and chrome a11y
 > toolkit for any Rust UI -- **semantically named constants + presentation
-> pinning + optional CSS / ARIA helpers** -- pure Rust, zero dependencies.
-> Application `.rs` files stay ASCII; glyphs never scatter as raw literals
-> that Windows-1252 round-trips can mojibake. Thoth is the Egyptian god of
-> wisdom, knowledge, writing, and hieroglyphs.
+> pinning + optional CSS / ARIA helpers** -- pure Rust. By default it also
+> installs [`rusty_alloc`](https://github.com/Remade-With-Rust/rusty_alloc)
+> as the process allocator (opt out below). Application `.rs` files stay
+> ASCII; glyphs never scatter as raw literals that Windows-1252 round-trips
+> can mojibake. Thoth is the Egyptian god of wisdom, knowledge, writing, and
+> hieroglyphs.
 >
 > Product nicknames: **rusty_tokens** (`thoth::tokens`), **rusty_a11y**
 > (`thoth::a11y`).
 
-> **Status -- v0.2.0.** Consumers pin
-> `git = "https://github.com/Remade-With-Rust/thoth.git", tag = "v0.2.0"`.
+> **Status -- v0.3.0.** Consumers pin
+> `git = "https://github.com/Remade-With-Rust/thoth.git", tag = "v0.3.0"`.
 > Core is `no_std` / wasm-checked. Plans:
 > [symbols](docs/plans/symbols-crate.md) |
 > [tokens](docs/plans/tokens-crate.md) |
@@ -37,7 +39,7 @@
 | Presentation (WebView) | platform-dependent | **VS15 pinned glyphs** | uniform |
 | Chrome theme contract | ad-hoc CSS | **`--thoth-*` tokens + optional sheet** | uniform |
 | Accessibility | bare glyph, no name | **`a11y` / `html` helpers** | opt-in |
-| Dependencies | -- | **none** | maintain |
+| Allocator | system / C | **`rusty_alloc` by default** | opt-out |
 | License + embedding | mixed | **MIT** | -- |
 
 ---
@@ -47,27 +49,73 @@
 Not on crates.io yet. From a sibling checkout or git tag:
 
 ```toml
-thoth = { git = "https://github.com/Remade-With-Rust/thoth.git", tag = "v0.2.0" }
+thoth = { git = "https://github.com/Remade-With-Rust/thoth.git", tag = "v0.3.0" }
+# bring your own allocator (libraries / mata-alloc portfolios):
+# thoth = { git = "...", tag = "v0.3.0", default-features = false }
 # accessible HTML helpers (preferred):
-# thoth = { git = "...", tag = "v0.2.0", features = ["a11y"] }
+# thoth = { git = "...", tag = "v0.3.0", features = ["a11y"] }
 # v0.1 compat alias (enables a11y + symbols::html::labelled):
-# thoth = { git = "...", tag = "v0.2.0", features = ["html"] }
+# thoth = { git = "...", tag = "v0.3.0", features = ["html"] }
 # CSS :root emitter for design tokens:
-# thoth = { git = "...", tag = "v0.2.0", features = ["css"] }
+# thoth = { git = "...", tag = "v0.3.0", features = ["css"] }
+# hardened allocator (guard pages + encrypted free lists):
+# thoth = { git = "...", tag = "v0.3.0", features = ["secure"] }
 # local path while developing:
 # thoth = { path = "../thoth" }
 ```
 
 | Feature | Default | Provides |
 |---------|---------|----------|
-| *(none)* | -- | `symbols::*`, `tokens::{color,space,type_scale,radius}` |
+| `rusty-alloc` | **yes** | process-wide [`rusty_alloc`](https://github.com/Remade-With-Rust/rusty_alloc) |
+| `secure` | no | enables `rusty-alloc` + guard pages / encrypted free lists |
+| *(core)* | -- | `symbols::*`, `tokens::{color,space,type_scale,radius}` |
 | `a11y` | no | `a11y::{label,live,status}` |
 | `html` | no | enables `a11y`; `symbols::html::labelled` re-export |
 | `css` | no | `tokens::css::root_sheet` |
 
-Always on: pure-ASCII source, `no_std` core, zero deps.
+Always on: pure-ASCII source, `no_std` core. With `default-features = false`,
+thoth has **zero** required dependencies.
 
 MSRV: **1.73**.
+
+## Memory allocation (`rusty_alloc`) -- on by default
+
+**thoth installs [`rusty_alloc`](https://github.com/Remade-With-Rust/rusty_alloc)
+as the process-wide allocator by default.** It is a pure-Rust mimalloc-class
+allocator: double free aborts instead of corrupting the heap, no C allocator
+in the tree, and the same surface on Linux / macOS / Windows / `wasm32`
+(no emscripten). Measured evidence vs mimalloc is instruction **parity**
+(~0.99--1.01); vs glibc roughly **16% fewer instructions** on the published
+workloads -- see the rusty_alloc README for what is and isn't claimed.
+
+An unconfigured app should get the hardened allocator, so this is opt-**out**:
+
+```toml
+# Bring your own (jemalloc, mimalloc, system, mata-alloc, ...)
+thoth = { git = "...", tag = "v0.3.0", default-features = false }
+
+# Or the hardened profile
+thoth = { git = "...", tag = "v0.3.0", features = ["secure"] }
+```
+
+Disabling it removes `rusty_alloc` from the dependency graph entirely.
+Check what a build actually got:
+
+```rust
+assert!(thoth::rusty_alloc_enabled()); // true with defaults
+```
+
+### Writing a library? Opt out.
+
+A program may contain exactly **one** `#[global_allocator]`, and Cargo
+features are additive across the whole graph. Libraries that depend on thoth
+must use `default-features = false` so they do not impose an allocator on
+every downstream binary (and so they do not conflict with an app that already
+chose one, e.g. via `mata-alloc`).
+
+Sibling crates [`rusty_tokens`](https://github.com/Remade-With-Rust/rusty_tokens)
+and [`rusty_a11y`](https://github.com/Remade-With-Rust/rusty_a11y) do **not**
+install an allocator -- only thoth (or the app) does.
 
 ## Quick start
 
@@ -110,6 +158,7 @@ fn inject_theme() -> String {
 ```sh
 cargo test
 cargo test --features a11y,css,html
+cargo test --no-default-features --features a11y,css,html
 
 # Consumer CI -- fail the build on non-ASCII .rs bytes
 bash scripts/check-ascii-rs.sh src crates
@@ -119,6 +168,7 @@ powershell -File scripts/check-ascii-rs.ps1 src crates
 
 ## Features
 
+- **rusty_alloc** -- process allocator on by default; `secure` for hardening.
 - **Status** -- ok / fail / warn / timer / alarm / live / play / stop.
 - **Nav** -- arrows, hooks, branch, collapse (VS15 on triangles).
 - **Structure** -- horizontal rule, tree tee / corner.
@@ -141,6 +191,7 @@ powershell -File scripts/check-ascii-rs.ps1 src crates
 | CSS `:root` emitter | done feature `css` |
 | `a11y` label / live / status | done feature `a11y` |
 | `html::labelled` compat re-export | done feature `html` |
+| `rusty_alloc` default + opt-out | done v0.3 |
 | ASCII self-test | done |
 | Consumer CI scripts | done |
 | First consumer for tokens/a11y | done Phase 1 |
@@ -152,11 +203,12 @@ powershell -File scripts/check-ascii-rs.ps1 src crates
 ┌──────────────────────────────────────────────────────────────┐
 │  thoth                                                       │
 │                                                              │
-│  symbols::*          -- glyphs                            ✅ │
-│  symbols::html       -- labelled; re-exports a11y         ✅ │
-│  tokens::*           -- design tokens (rusty_tokens)      ✅ │
-│  tokens::css         -- :root sheet [feature css]         ✅ │
-│  a11y::*             -- chrome a11y (rusty_a11y) [a11y]   ✅ │
+│  rusty_alloc     -- global allocator [default]            ✅ │
+│  symbols::*      -- glyphs                                ✅ │
+│  symbols::html   -- labelled; re-exports a11y             ✅ │
+│  tokens::*       -- design tokens (rusty_tokens)          ✅ │
+│  tokens::css     -- :root sheet [feature css]             ✅ │
+│  a11y::*         -- chrome a11y (rusty_a11y) [a11y]       ✅ │
 └──────────────────────────────────────────────────────────────┘
 ```
 
@@ -176,11 +228,11 @@ literal glyph source bytes.
 | macOS | yes |
 | Linux | yes |
 | Web (Dioxus / browsers) | yes |
-| WASM (`wasm32-unknown-unknown`) | yes (`no_std` core; `a11y` / `html` / `css` need `alloc`) |
+| WASM (`wasm32-unknown-unknown`) | yes (`no_std` core; `a11y` / `html` / `css` need `alloc`; default `rusty_alloc` covers the heap) |
 
-No OS APIs on the default feature set. The same constants render under
-WebView2, WKWebView, and wasm UIs; VS15 pinning keeps glyph presentation
-consistent across those hosts.
+No OS APIs beyond what `rusty_alloc` uses for the heap. The same glyph/token
+constants render under WebView2, WKWebView, and wasm UIs; VS15 pinning keeps
+glyph presentation consistent across those hosts.
 
 ## Remade With Rust
 
