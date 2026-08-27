@@ -42,8 +42,10 @@ expr-count = ["expressions", "rusty_expressions/expr-count"]
 
 [dependencies]
 # Optional so `default-features = false` removes it from the graph entirely.
-# Pin exactly: rusty_alloc is 0.x and earlier releases had UAFs on all targets.
-rusty_alloc-api = { version = "=0.4.0", optional = true }
+# Pin exactly: earlier releases had UAFs on all targets. Kept in step with
+# rusty_expressions, which moved to 1.1.4 -- a consumer that enables both
+# crates' allocators would otherwise pull two incompatible majors.
+rusty_alloc-api = { version = "=1.1.4", optional = true }
 # The Oniguruma remake, split out of this repo and published standalone.
 # `default-features = false` is LOAD-BEARING: rusty_expressions installs
 # rusty_alloc as a #[global_allocator] by default, and so does this crate --
