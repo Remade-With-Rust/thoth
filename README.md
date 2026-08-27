@@ -21,8 +21,9 @@
 > **rusty_expressions has split out.** The Oniguruma remake now lives at
 > [crates.io/crates/rusty_expressions](https://crates.io/crates/rusty_expressions)
 > ([repo](https://github.com/Remade-With-Rust/rusty_expressions)) -- ~3x faster
-> than libonig and differentially gated against it. New code should depend on
-> that crate directly; `thoth::expressions` remains for existing consumers.
+> than libonig and differentially gated against it. The `expressions` feature
+> re-exports it as `thoth::expressions`, so existing paths keep working; new
+> code should depend on that crate directly.
 
 > **Status -- v0.3.0.** Consumers pin
 > `git = "https://github.com/Remade-With-Rust/thoth.git", tag = "v0.3.0"`.
@@ -83,7 +84,7 @@ thoth = { git = "https://github.com/Remade-With-Rust/thoth.git", tag = "v0.3.0" 
 | `a11y` | no | `a11y::{label,live,status}` |
 | `html` | no | enables `a11y`; `symbols::html::labelled` re-export |
 | `css` | no | `tokens::css::root_sheet` |
-| `expressions` | no | `expressions::*` Oniguruma remake (rusty_expressions); does not enable `rusty-alloc` |
+| `expressions` | no | re-exports the [`rusty_expressions`](https://crates.io/crates/rusty_expressions) crate as `thoth::expressions`; does not enable `rusty-alloc` |
 | `compat` | no | enables `expressions`; pure-Rust `onig_new` / `regex_t` C ABI (no libonig) |
 
 Always on: pure-ASCII source, `no_std` core. With `default-features = false`,
@@ -187,9 +188,9 @@ cargo test --features a11y,css,html,expressions,compat
 cargo test --no-default-features --features a11y,css,html,expressions,compat
 cargo check --target wasm32-unknown-unknown --no-default-features --features expressions,compat
 
-# Side-by-side vs harvested Oniguruma fixtures (optional live libonig):
-cargo run --release --manifest-path tools/onig-bench/Cargo.toml
-# cargo run --release --manifest-path tools/onig-bench/Cargo.toml --features oracle
+# The regex engine's own suite (harvested Oniguruma vectors, the differential
+# gates vs live libonig, the property fuzz) runs in its own repository:
+#   github.com/Remade-With-Rust/rusty_expressions
 
 # Consumer CI -- fail the build on non-ASCII .rs bytes
 bash scripts/check-ascii-rs.sh src crates
@@ -208,12 +209,11 @@ powershell -File scripts/check-ascii-rs.ps1 src crates
 - **Tokens (rusty_tokens)** -- color / space / type_scale / radius names + defaults.
 - **CSS** -- `:root` sheet emitter (`css` feature).
 - **A11y (rusty_a11y)** -- labelled glyphs, live regions, status announcements.
-- **Expressions (rusty_expressions)** -- Oniguruma remade in pure Rust
-  (`expressions` feature). Match-equivalent to Oniguruma 6.9.10 against live
-  libonig, and **~3x faster than libonig** (`ours/onig` 0.32, 23/23 benchmark
-  cases ours). **Now published standalone as
-  [`rusty_expressions`](https://crates.io/crates/rusty_expressions)** -- prefer
-  that crate for new code; the in-tree module stays for existing consumers.
+- **Expressions** -- `thoth::expressions` re-exports
+  [`rusty_expressions`](https://crates.io/crates/rusty_expressions), the
+  Oniguruma remake: match-equivalent to Oniguruma 6.9.10 against live libonig
+  and **~3x faster than it** (`ours/onig` 0.32, 23/23 benchmark cases ours).
+  New code should depend on that crate directly.
 - **HTML** -- v0.1 compat re-export of `a11y::label::img`.
 - **Guards** -- ASCII source self-test; consumer grep scripts.
 
@@ -232,7 +232,7 @@ powershell -File scripts/check-ascii-rs.ps1 src crates
 | ASCII self-test | done |
 | Consumer CI scripts | done |
 | First consumer for tokens/a11y | done Phase 1 |
-| Oniguruma remake (`expressions::*`, rusty_expressions) | done -- match-equivalent to libonig, ~3x faster; **split out to [crates.io/crates/rusty_expressions](https://crates.io/crates/rusty_expressions)** |
+| Oniguruma remake | **split out** to [rusty_expressions](https://crates.io/crates/rusty_expressions); `expressions` feature re-exports it |
 | crates.io | later |
 
 ## Architecture
@@ -247,7 +247,7 @@ powershell -File scripts/check-ascii-rs.ps1 src crates
 │  tokens::*       -- design tokens (rusty_tokens)          ✅ │
 │  tokens::css     -- :root sheet [feature css]             ✅ │
 │  a11y::*         -- chrome a11y (rusty_a11y) [a11y]       ✅ │
-│  expressions::*  -- Oniguruma remake  [split out, see below] ✅ │
+│  expressions::*  -- re-export of rusty_expressions [split] ✅ │
 └──────────────────────────────────────────────────────────────┘
 ```
 

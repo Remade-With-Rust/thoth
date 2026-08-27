@@ -74,9 +74,14 @@ pub mod tokens;
 #[cfg_attr(docsrs, doc(cfg(feature = "a11y")))]
 pub mod a11y;
 
+/// Oniguruma remade in pure Rust.
+///
+/// A re-export of the standalone [`rusty_expressions`] crate, which is where
+/// the engine now lives and is developed. Existing `thoth::expressions::*`
+/// paths keep working; new code can depend on `rusty_expressions` directly.
 #[cfg(feature = "expressions")]
 #[cfg_attr(docsrs, doc(cfg(feature = "expressions")))]
-pub mod expressions;
+pub use rusty_expressions as expressions;
 
 pub use symbols::{list, math, nav, status, structure};
 
