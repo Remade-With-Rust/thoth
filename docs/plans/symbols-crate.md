@@ -78,7 +78,8 @@ renders differently across platforms.
 └──────────────────────────────────────────────────────────────┘
 ```
 
-Sibling plans: [tokens-crate.md](tokens-crate.md), [a11y-crate.md](a11y-crate.md).
+Sibling plans: [tokens-crate.md](tokens-crate.md), [a11y-crate.md](a11y-crate.md),
+[expressions.md](expressions.md).
 
 Northern-star capabilities to mirror from ratatui (without copying terminal-first
 or literal-glyph source style):

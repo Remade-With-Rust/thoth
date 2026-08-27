@@ -43,9 +43,11 @@
 //! | [`tokens`] | color / space / type / radius tokens |
 //! | [`tokens::css`] | `:root` sheet (`css` feature) |
 //! | [`a11y`] | label / live / status (`a11y` feature) |
+//! | [`expressions`] | Oniguruma remake (`expressions` feature; rusty_expressions) |
 //!
 //! Plans: symbols / [tokens](https://github.com/Remade-With-Rust/thoth/blob/main/docs/plans/tokens-crate.md) /
-//! [a11y](https://github.com/Remade-With-Rust/thoth/blob/main/docs/plans/a11y-crate.md).
+//! [a11y](https://github.com/Remade-With-Rust/thoth/blob/main/docs/plans/a11y-crate.md) /
+//! [expressions](https://github.com/Remade-With-Rust/thoth/blob/main/docs/plans/expressions.md).
 
 /// The pure-Rust global allocator, installed process-wide.
 ///
@@ -71,6 +73,10 @@ pub mod tokens;
 #[cfg(feature = "a11y")]
 #[cfg_attr(docsrs, doc(cfg(feature = "a11y")))]
 pub mod a11y;
+
+#[cfg(feature = "expressions")]
+#[cfg_attr(docsrs, doc(cfg(feature = "expressions")))]
+pub mod expressions;
 
 pub use symbols::{list, math, nav, status, structure};
 

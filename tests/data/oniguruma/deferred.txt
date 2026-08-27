@@ -1,0 +1,6 @@
+# Named Oniguruma 6.9.10 / doc/RE gaps -- closed.
+#
+# Open lines (non-comment) fail tests/expressions.rs::deferred_gaps_are_named.
+# Closed decisions stay documented in docs/plans/expressions.md:
+#   split-rusty_expressions-repo -- remain src/expressions/ in thoth until after v0.4.0
+#   crates-io-rusty_expressions -- crates.io name is available (API 404); do not publish yet

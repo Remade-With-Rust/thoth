@@ -1,0 +1,20 @@
+[
+  {"id": "lit-cat", "pattern": "cat", "hay": "one cat two", "start": 4, "end": 7, "captures": []},
+  {"id": "plus", "pattern": "ca+t", "hay": "caaat", "start": 0, "end": 5, "captures": []},
+  {"id": "star-empty", "pattern": "a*", "hay": "b", "start": 0, "end": 0, "captures": []},
+  {"id": "dot", "pattern": "a.b", "hay": "axb", "start": 0, "end": 3, "captures": []},
+  {"id": "alt", "pattern": "cat|dog", "hay": "a dog", "start": 2, "end": 5, "captures": []},
+  {"id": "cap", "pattern": "(ca)+t", "hay": "cacat", "start": 0, "end": 5, "captures": [[2, 4]]},
+  {"id": "class", "pattern": "[abc]+", "hay": "xxbca", "start": 2, "end": 5, "captures": []},
+  {"id": "negclass", "pattern": "[^0-9]+", "hay": "12ab34", "start": 2, "end": 4, "captures": []},
+  {"id": "anchor-a", "pattern": "\\Afoo", "hay": "foo", "start": 0, "end": 3, "captures": []},
+  {"id": "anchor-z", "pattern": "foo\\z", "hay": "foo", "start": 0, "end": 3, "captures": []},
+  {"id": "word", "pattern": "\\w+", "hay": "++ab++", "start": 2, "end": 4, "captures": []},
+  {"id": "digit", "pattern": "\\d+", "hay": "ab12cd", "start": 2, "end": 4, "captures": []},
+  {"id": "space", "pattern": "a\\sb", "hay": "a b", "start": 0, "end": 3, "captures": []},
+  {"id": "hex-esc", "pattern": "\\x61", "hay": "cat", "start": 1, "end": 2, "captures": []},
+  {"id": "brace", "pattern": "a{2,4}", "hay": "caaaat", "start": 1, "end": 5, "captures": []},
+  {"id": "quest", "pattern": "colou?r", "hay": "color", "start": 0, "end": 5, "captures": []},
+  {"id": "ncap", "pattern": "(?:foo)bar", "hay": "foobar", "start": 0, "end": 6, "captures": []},
+  {"id": "mismatch", "pattern": "cat", "hay": "dog", "mismatch": true}
+]

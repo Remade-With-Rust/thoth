@@ -1,0 +1,20 @@
+[
+  {"id": "look-ahead", "pattern": "foo(?=bar)", "hay": "foobar", "start": 0, "end": 3, "captures": []},
+  {"id": "look-ahead-fail", "pattern": "foo(?=bar)", "hay": "foo", "mismatch": true},
+  {"id": "look-behind", "pattern": "(?<=foo)bar", "hay": "foobar", "start": 3, "end": 6, "captures": []},
+  {"id": "named-group", "pattern": "(?<n>ca+)t", "hay": "caaat", "start": 0, "end": 5, "captures": [[0, 4]]},
+  {"id": "named-backref", "pattern": "(?<n>cat)\\k<n>", "hay": "catcat", "start": 0, "end": 6, "captures": [[0, 3]]},
+  {"id": "subexp-call", "pattern": "(a)\\g<1>", "hay": "aa", "start": 0, "end": 2, "captures": [[1, 2]]},
+  {"id": "absent-repeater", "pattern": "(?~abc)", "hay": "xxabc", "start": 0, "end": 2, "captures": []},
+  {"id": "conditional-then", "pattern": "(a)?(?(1)a|b)", "hay": "aa", "start": 0, "end": 2, "captures": [[0, 1]]},
+  {"id": "conditional-else", "pattern": "(a)?(?(1)a|b)", "hay": "b", "start": 0, "end": 1, "captures": []},
+  {"id": "prop-letter", "pattern": "\\p{L}+", "hay": "Ab9", "start": 0, "end": 2, "captures": []},
+  {"id": "prop-lu", "pattern": "\\p{Lu}", "hay": "aB", "start": 1, "end": 2, "captures": []},
+  {"id": "posix-digit", "pattern": "[[:digit:]]+", "hay": "x42y", "start": 1, "end": 3, "captures": []},
+  {"id": "keep", "pattern": "a\\Kb", "hay": "ab", "start": 1, "end": 2, "captures": []},
+  {"id": "hex-h", "pattern": "\\h+", "hay": "zzAF", "start": 2, "end": 4, "captures": []},
+  {"id": "general-nl", "pattern": "a\\Rb", "hay": "a\nb", "start": 0, "end": 3, "captures": []},
+  {"id": "atomic-fail", "pattern": "(?>a*)a", "hay": "aaa", "mismatch": true},
+  {"id": "possessive-fail", "pattern": "a*+a", "hay": "aaa", "mismatch": true},
+  {"id": "relative-backref", "pattern": "(cat)(dog)\\k<-1>", "hay": "catdogdog", "start": 0, "end": 9, "captures": [[0, 3], [3, 6]]}
+]

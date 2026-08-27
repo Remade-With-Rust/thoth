@@ -1,0 +1,111 @@
+[
+ {
+  "id": "scan-word",
+  "pattern": "\\w+",
+  "hay": "a bb",
+  "start": 0,
+  "end": 1,
+  "captures": []
+ },
+ {
+  "id": "contents-callout-ok",
+  "pattern": "a(?{ok})b",
+  "hay": "ab",
+  "start": 0,
+  "end": 2,
+  "captures": []
+ },
+ {
+  "id": "user-prop-fallback-letter",
+  "pattern": "\\p{L}",
+  "hay": "Z",
+  "start": 0,
+  "end": 1,
+  "captures": []
+ },
+ {
+  "id": "callout-skip-passes-forward",
+  "pattern": "a(*SKIP)b",
+  "hay": "ab",
+  "start": 0,
+  "end": 2,
+  "captures": []
+ },
+ {
+  "id": "callout-skip-retry-at-skip-point",
+  "pattern": "[ab](*SKIP)c",
+  "hay": "abc",
+  "start": 1,
+  "end": 3,
+  "captures": []
+ },
+ {
+  "id": "callout-skip-alt-still-tried",
+  "pattern": "(?:a(*SKIP)x|ab)",
+  "hay": "ab",
+  "start": 0,
+  "end": 2,
+  "captures": []
+ },
+ {
+  "id": "callout-fail-verb",
+  "pattern": "a(*FAIL)b",
+  "hay": "ab",
+  "mismatch": true
+ },
+ {
+  "id": "callout-fail-alt",
+  "pattern": "(?:a(*FAIL)|b)",
+  "hay": "ab",
+  "start": 1,
+  "end": 2,
+  "captures": []
+ },
+ {
+  "id": "subexp-call-overwrites-capture",
+  "pattern": "(a)\\g<1>",
+  "hay": "aa",
+  "start": 0,
+  "end": 2,
+  "captures": [
+   [
+    1,
+    2
+   ]
+  ]
+ },
+ {
+  "id": "subexp-call-recursive-outermost",
+  "pattern": "(?<a>x\\g<a>?y)",
+  "hay": "xxyy",
+  "start": 0,
+  "end": 4,
+  "captures": [
+   [
+    0,
+    4
+   ]
+  ]
+ },
+ {
+  "id": "class-hex-brace-escape",
+  "pattern": "[\\x{00e9}]",
+  "hay": "\u00e9",
+  "start": 0,
+  "end": 2,
+  "captures": []
+ },
+ {
+  "id": "named-group-disables-numbered",
+  "pattern": "(x)(?<a>y)",
+  "hay": "xy",
+  "start": 0,
+  "end": 2,
+  "captures": [
+   [
+    1,
+    2
+   ]
+  ]
+ }
+]

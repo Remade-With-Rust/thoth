@@ -17,13 +17,20 @@
 >
 > Product nicknames: **rusty_tokens** (`thoth::tokens`), **rusty_a11y**
 > (`thoth::a11y`).
+>
+> **rusty_expressions has split out.** The Oniguruma remake now lives at
+> [crates.io/crates/rusty_expressions](https://crates.io/crates/rusty_expressions)
+> ([repo](https://github.com/Remade-With-Rust/rusty_expressions)) -- ~3x faster
+> than libonig and differentially gated against it. New code should depend on
+> that crate directly; `thoth::expressions` remains for existing consumers.
 
 > **Status -- v0.3.0.** Consumers pin
 > `git = "https://github.com/Remade-With-Rust/thoth.git", tag = "v0.3.0"`.
 > Core is `no_std` / wasm-checked. Plans:
 > [symbols](docs/plans/symbols-crate.md) |
 > [tokens](docs/plans/tokens-crate.md) |
-> [a11y](docs/plans/a11y-crate.md).
+> [a11y](docs/plans/a11y-crate.md) |
+> [expressions](docs/plans/expressions.md).
 
 ---
 
@@ -58,6 +65,10 @@ thoth = { git = "https://github.com/Remade-With-Rust/thoth.git", tag = "v0.3.0" 
 # thoth = { git = "...", tag = "v0.3.0", features = ["html"] }
 # CSS :root emitter for design tokens:
 # thoth = { git = "...", tag = "v0.3.0", features = ["css"] }
+# Oniguruma remake: prefer the standalone crate for new code --
+# rusty_expressions = "X.Y"   (crates.io)
+# The in-tree module remains available:
+# thoth = { git = "...", tag = "v0.3.0", default-features = false, features = ["expressions"] }
 # hardened allocator (guard pages + encrypted free lists):
 # thoth = { git = "...", tag = "v0.3.0", features = ["secure"] }
 # local path while developing:
@@ -72,6 +83,8 @@ thoth = { git = "https://github.com/Remade-With-Rust/thoth.git", tag = "v0.3.0" 
 | `a11y` | no | `a11y::{label,live,status}` |
 | `html` | no | enables `a11y`; `symbols::html::labelled` re-export |
 | `css` | no | `tokens::css::root_sheet` |
+| `expressions` | no | `expressions::*` Oniguruma remake (rusty_expressions); does not enable `rusty-alloc` |
+| `compat` | no | enables `expressions`; pure-Rust `onig_new` / `regex_t` C ABI (no libonig) |
 
 Always on: pure-ASCII source, `no_std` core. With `default-features = false`,
 thoth has **zero** required dependencies.
@@ -155,10 +168,28 @@ fn inject_theme() -> String {
 }
 ```
 
+```rust
+// feature = "expressions"
+use thoth::expressions::{Encoding, Options, Regex, Syntax};
+
+fn find_cat(hay: &[u8]) -> Option<(usize, usize)> {
+    let re = Regex::new("ca+t", Options::NONE, Encoding::UTF8, Syntax::ONIGURUMA).ok()?;
+    re.search(hay).ok()?.map(|m| {
+        let r = m.range();
+        (r.start, r.end)
+    })
+}
+```
+
 ```sh
 cargo test
-cargo test --features a11y,css,html
-cargo test --no-default-features --features a11y,css,html
+cargo test --features a11y,css,html,expressions,compat
+cargo test --no-default-features --features a11y,css,html,expressions,compat
+cargo check --target wasm32-unknown-unknown --no-default-features --features expressions,compat
+
+# Side-by-side vs harvested Oniguruma fixtures (optional live libonig):
+cargo run --release --manifest-path tools/onig-bench/Cargo.toml
+# cargo run --release --manifest-path tools/onig-bench/Cargo.toml --features oracle
 
 # Consumer CI -- fail the build on non-ASCII .rs bytes
 bash scripts/check-ascii-rs.sh src crates
@@ -177,6 +208,12 @@ powershell -File scripts/check-ascii-rs.ps1 src crates
 - **Tokens (rusty_tokens)** -- color / space / type_scale / radius names + defaults.
 - **CSS** -- `:root` sheet emitter (`css` feature).
 - **A11y (rusty_a11y)** -- labelled glyphs, live regions, status announcements.
+- **Expressions (rusty_expressions)** -- Oniguruma remade in pure Rust
+  (`expressions` feature). Match-equivalent to Oniguruma 6.9.10 against live
+  libonig, and **~3x faster than libonig** (`ours/onig` 0.32, 23/23 benchmark
+  cases ours). **Now published standalone as
+  [`rusty_expressions`](https://crates.io/crates/rusty_expressions)** -- prefer
+  that crate for new code; the in-tree module stays for existing consumers.
 - **HTML** -- v0.1 compat re-export of `a11y::label::img`.
 - **Guards** -- ASCII source self-test; consumer grep scripts.
 
@@ -195,6 +232,7 @@ powershell -File scripts/check-ascii-rs.ps1 src crates
 | ASCII self-test | done |
 | Consumer CI scripts | done |
 | First consumer for tokens/a11y | done Phase 1 |
+| Oniguruma remake (`expressions::*`, rusty_expressions) | done -- match-equivalent to libonig, ~3x faster; **split out to [crates.io/crates/rusty_expressions](https://crates.io/crates/rusty_expressions)** |
 | crates.io | later |
 
 ## Architecture
@@ -209,12 +247,14 @@ powershell -File scripts/check-ascii-rs.ps1 src crates
 │  tokens::*       -- design tokens (rusty_tokens)          ✅ │
 │  tokens::css     -- :root sheet [feature css]             ✅ │
 │  a11y::*         -- chrome a11y (rusty_a11y) [a11y]       ✅ │
+│  expressions::*  -- Oniguruma remake  [split out, see below] ✅ │
 └──────────────────────────────────────────────────────────────┘
 ```
 
 Plans: [symbols](docs/plans/symbols-crate.md) |
 [tokens](docs/plans/tokens-crate.md) |
-[a11y](docs/plans/a11y-crate.md).
+[a11y](docs/plans/a11y-crate.md) |
+[expressions](docs/plans/expressions.md).
 
 Northern star for glyphs: [ratatui symbols](https://github.com/ratatui/ratatui)
 (semantic naming, grouped sets, flat consts) -- without terminal-first APIs or
