@@ -51,7 +51,7 @@ rusty_alloc-api = { version = "=1.1.4", optional = true }
 # rusty_alloc as a #[global_allocator] by default, and so does this crate --
 # a program may define exactly one, so pulling its defaults would break every
 # build that enables `expressions`.
-rusty_expressions = { version = "0.1", default-features = false, optional = true }
+rusty_expressions = { version = "0.2", default-features = false, optional = true }
 
 [dev-dependencies]
 
